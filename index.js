@@ -14,11 +14,16 @@ import {
 } from "./seeder/user.js";
 import { v2 as cloudinary } from "cloudinary";
 import { v4 as uuidv4 } from "uuid";
-import { ALERT, NEW_MESSAGE } from "./constant/event.js";
-import cors from 'cors'
+import {
+  ALERT,
+  NEW_ATTACHEMENT,
+  NEW_MESSAGE,
+  START_TYPING,
+  STOP_TYPING,
+} from "./constant/event.js";
+import cors from "cors";
 import { SocketAuthMiddleware } from "./middleware/authmiddleware.js";
 import Message from "./models/message.js";
-
 
 const app = express();
 export const userSocket = new Map();
@@ -44,17 +49,15 @@ cloudinary.config({
 
 const server = createServer(app);
 
-
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
-  }
+  },
 });
-io.use(async(socket, next) => { await SocketAuthMiddleware(socket, next);
-})
-
-
+io.use(async (socket, next) => {
+  await SocketAuthMiddleware(socket, next);
+});
 
 app.set("io", io);
 // Home route
@@ -75,49 +78,101 @@ io.on("connection", (socket) => {
   // console.log("User connected: " + user._id);
   userSocket.set(user._id.toString(), socket.id);
 
-  socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
-    // console.log("Received NEW_MESSAGE event:", { chatId, members, message });
-    console.log(chatId);
+  socket.on(
+    NEW_MESSAGE,
+    async ({ chatId, members, message, attachment = [] }) => {
+      console.log("Chat ID:", chatId);
+
+      const realTimeData = {
+        content: message,
+        _id: uuidv4(),
+        sender: {
+          _id: user._id,
+          name: user.name,
+        },
+        attachment: [],
+        chatId: chatId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const messageForDB = {
+        content: message,
+        sender: {
+          _id: user._id,
+          name: user.name,
+        },
+        chat: chatId,
+        attachment: attachment,
+      };
+
+      console.log("Members:", members);
+
+      const memberSockets = members?.map((member) => {
+        // console.log("Member:", member);
+        const socketId = userSocket.get(member.toString());
+        // console.log("Socket ID for member:", socketId);
+        return socketId;
+      });
+      // Filter out undefined values
+
+      io.to(memberSockets).emit(NEW_MESSAGE, { chatId, realTimeData });
+      io.to(memberSockets).emit(ALERT, { chatId });
+
+      try {
+        const result = await Message.create(messageForDB);
+        console.log("Message saved to DB:", result);
+      } catch (error) {
+        console.error("Error in saving message:", error);
+      }
+    }
+  );
+
+  socket.on(NEW_ATTACHEMENT, async ({ chatId, members, attachment }) => {
     const realTimeData = {
-      content: message,
       _id: uuidv4(),
       sender: {
         _id: user._id,
         name: user.name,
       },
+      attachment: attachment,
       chatId: chatId,
       createdAt: new Date().toISOString(),
     };
-    const messageForDB = {
-      content: message,
-      sender: user._id,
-      chat: chatId,
-    };
 
-    const memberSocket = members
-      .map((member) => {
-        console.log("Member:", member);
+    const memberSockets = members
+      ?.map((member) => {
         const socketId = userSocket.get(member.toString());
-        console.log("Socket ID for member:", socketId);
-        
-        // console.log(`Socket ID for member ${member._id}:`, socketId);
         return socketId;
       })
-       // Remove undefined values
+      .filter((socket) => socket); // Filter out undefined values
 
-    const group = memberSocket.filter((socket) => socket);
-    console.log("Member sockets: ", memberSocket.filter((socket) => socket));
+    console.log("realTimeData from attachment", realTimeData);
 
-    io.to(group).emit(NEW_MESSAGE, { chatId, realTimeData });
-    io.to(group).emit(ALERT, { chatId });
-   
+    io.to(memberSockets).emit(NEW_ATTACHEMENT, { chatId, realTimeData });
+    io.to(memberSockets).emit(ALERT, { chatId });
+  });
 
-    try {
-      const result = await Message.create(messageForDB);
-      console.log("Message saved to DB:", result);
-    } catch (error) {
-      console.log("Error in saving message:", error);
-    }
+  socket.on(START_TYPING, ({ chatId, members }) => {
+    const memberSockets = members?.map((member) => {
+      const socketId = userSocket.get(member.toString());
+      return socketId;
+    });
+
+    console.log("Typing" + user.userName);
+
+    io.to(memberSockets).emit(START_TYPING, { chatId, user });
+  });
+
+  socket.on(STOP_TYPING, ({ chatId, members }) => {
+    const memberSockets = members
+      ?.map((member) => {
+        const socketId = userSocket.get(member.toString());
+        return socketId;
+      })
+      .filter((socket) => socket); // Filter out undefined values
+    console.log("Stop Typing" + user.userName);
+
+    io.to(memberSockets).emit(STOP_TYPING, { chatId, user });
   });
 
   socket.on("disconnect", () => {
@@ -137,7 +192,6 @@ app.use("/api/chats", chats);
 
 // middleware
 app.use(errorMiddleware);
-
 
 server.listen(PORT, () => {
   console.log("Server is running on port 3000");
