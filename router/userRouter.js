@@ -23,7 +23,7 @@ user.put("/sendRequest", authMiddleware, sendRequest)
 user.put("/acceptRequest", authMiddleware, acceptRequest)
 user.get("/getallnotification", authMiddleware, getallnotification)
 
-user.get("/getMyFriends", authMiddleware, getMyFriends)
+user.get("/getFriends", authMiddleware, getMyFriends);
 
 
 export default user

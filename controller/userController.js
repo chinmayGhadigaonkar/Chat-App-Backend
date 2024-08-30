@@ -212,6 +212,7 @@ export const getallnotification = async (req, res, next) => {
 export const getMyFriends = async (req, res, next) => {
   try {
     const chatId = req.query.chatId;
+    console.log(chatId);
 
     const chat = await Chat.find({
       members: req.user,
@@ -237,6 +238,7 @@ export const getMyFriends = async (req, res, next) => {
       const availableFriends = chat.members.filter(
         (friend) => !chat.members.includes(friend._id)
       );
+      console.log(availableFriends);
 
       return res.status(200).json({ success: true, friends: availableFriends });
     }

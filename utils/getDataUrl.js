@@ -7,8 +7,14 @@ const getDataURI = (image) => {
   return parser.format(extName, image.buffer);
 };
 
-export const getBase64WithInfo = (file) =>
-  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+export const getBase64WithInfo = (file) => {
+  const base64String = `data:${file.mimetype};base64,${file.buffer.toString(
+    "base64"
+  )}`;
+  console.log(file.mimetype);
+  return base64String;
+};
+
 
 
 export default getDataURI;

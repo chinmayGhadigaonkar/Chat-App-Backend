@@ -20,4 +20,5 @@ chats.get("/getChatMessage/:id", getMessages)
 //  chat
 chats.route("/:id").get(getChatDetail).put(authMiddleware,renameGroup).delete(authMiddleware,deleteChat)
 
+
 export default chats

@@ -115,6 +115,8 @@ io.on("connection", (socket) => {
       });
       // Filter out undefined values
 
+      // console.log(memberSockets);
+
       io.to(memberSockets).emit(NEW_MESSAGE, { chatId, realTimeData });
       io.to(memberSockets).emit(ALERT, { chatId });
 
@@ -146,7 +148,7 @@ io.on("connection", (socket) => {
       })
       .filter((socket) => socket); // Filter out undefined values
 
-    console.log("realTimeData from attachment", realTimeData);
+    // console.log("realTimeData from attachment", realTimeData);
 
     io.to(memberSockets).emit(NEW_ATTACHEMENT, { chatId, realTimeData });
     io.to(memberSockets).emit(ALERT, { chatId });
