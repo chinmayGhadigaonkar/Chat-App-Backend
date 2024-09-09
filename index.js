@@ -31,6 +31,8 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 // Database connection
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 connection();
 
 const corsOptions = {
@@ -81,7 +83,7 @@ io.on("connection", (socket) => {
   socket.on(
     NEW_MESSAGE,
     async ({ chatId, members, message, attachment = [] }) => {
-      console.log("Chat ID:", chatId);
+      // console.log("Chat ID:", chatId);
 
       const realTimeData = {
         content: message,
@@ -105,14 +107,16 @@ io.on("connection", (socket) => {
         attachment: attachment,
       };
 
-      console.log("Members:", members);
+      // console.log("Members:", members);
 
-      const memberSockets = members?.map((member) => {
-        // console.log("Member:", member);
-        const socketId = userSocket.get(member.toString());
-        // console.log("Socket ID for member:", socketId);
-        return socketId;
-      });
+      const memberSockets = members
+        ?.map((member) => {
+          // console.log("Member:", member);
+          const socketId = userSocket.get(member.toString());
+          // console.log("Socket ID for member:", socketId);
+          return socketId;
+        })
+        .filter((socket) => socket);
       // Filter out undefined values
 
       // console.log(memberSockets);

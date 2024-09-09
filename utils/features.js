@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import { NEW_MESSAGE } from "../constant/event.js";
 
 
-const emitEvent = (req, event, { chatId, users }, message) => {
+const emitEvent = (req, event, { chatId, users }, message = "REFECH_DATA") => {
   const io = req.app.get("io");
 
   const memberSockets = users

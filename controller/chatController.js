@@ -168,6 +168,7 @@ const addMember = async (req, res, next) => {
         message: `${allUserName} added to this group`,
       }
     );
+    emitEvent(req, REFETCH_CHAT, { users: chat.members, chatId });
 
     // emitEvent(req, REFETCH_CHAT, chat.members);
 
@@ -226,6 +227,7 @@ const removeMember = async (req, res, next) => {
       }
     );
     // emitEvent(req, REFETCH_CHAT, chat.members);
+    emitEvent(req, REFETCH_CHAT, { users: chat.members, chatId });
 
     res
       .status(200)
@@ -273,8 +275,8 @@ const leaveGroup = async (req, res, next) => {
         message: `${req.user.name} left the group`,
       }
     );
-    // emitEvent(req, ALERT, chat.members, { message: `Someone left the group` });
-    // emitEvent(req, REFETCH_CHAT, chat.members); // Ensure this event is emitted
+
+    emitEvent(req, REFETCH_CHAT, { users: chat.members, chatId });
 
     res
       .status(200)
@@ -470,7 +472,8 @@ const deleteChat = async (req, res, next) => {
       Message.deleteMany({ chat: chat._id }),
     ]);
 
-    emitEvent(req, REFETCH_CHAT, members);
+    // emitEvent(req, REFETCH_CHAT, { chatId: chat._id, members });
+    emitEvent(req, REFETCH_CHAT, { users: chat.members, chatId: chat._id });
     res
       .status(200)
       .json({ success: true, message: "Chat deleted successfully" });

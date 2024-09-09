@@ -11,7 +11,7 @@ export const getBase64WithInfo = (file) => {
   const base64String = `data:${file.mimetype};base64,${file.buffer.toString(
     "base64"
   )}`;
-  console.log(file.mimetype);
+  // console.log(file.mimetype);
   return base64String;
 };
 
