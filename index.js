@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 connection();
 
 const corsOptions = {
-  origin: ["*"],
+  origin: ["*", "https://chat-app-frontend-inky-six.vercel.app"],
   credentials: true, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 app.use(cors(corsOptions));
