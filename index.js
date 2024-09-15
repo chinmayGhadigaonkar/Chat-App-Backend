@@ -36,21 +36,9 @@ app.use(express.urlencoded({ extended: true }));
 connection();
 
 const corsOptions = {
-  origin: [
-    "https://chat-app-frontend-inky-six.vercel.app",
-    "http://localhost:5173", // Allowing all origins
-  ],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: [
-    "Content-Type",
-    "Origin",
-    "X-Requested-With",
-    "Accept",
-    "x-client-key",
-    "x-client-token",
-    "x-client-secret",
-    "Authorization",
-  ],
+
   credentials: true,
 };
 app.use(cors(corsOptions));
