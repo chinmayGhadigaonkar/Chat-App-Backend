@@ -306,6 +306,7 @@ const sendAttachment = async (req, res, next) => {
     }
 
     const result = await CloudinaryFileUpload(files);
+    // console.log(result);
 
     const attachment = result.map(({ public_id, secure_url }) => ({
       public_id,
